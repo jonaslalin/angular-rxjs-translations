@@ -49,11 +49,12 @@ export class TranslationsService {
     );
 
     this.unseenTranslationsId$ = this.translationsIds$.pipe(
-      map(translationsIds => translationsIds[0]),
+      map(translationsIds => translationsIds[0]), // new ids are placed first
       distinctUntilChanged()
     );
 
     this.partialTranslationsCache$ = this.unseenTranslationsId$.pipe(
+      tap(console.log.bind(null, 'fetching translations for')),
       mergeMap(translationsId =>
         translationsRemoteService
           .fetchTranslations(translationsId)
@@ -75,9 +76,8 @@ export class TranslationsService {
     combineLatest(this.translationsId$, this.translationsCache$)
       .pipe(
         filter(
-          // cache miss
           ([translationsId, translationsCache]) =>
-            !!translationsCache[translationsId]
+            !!translationsCache[translationsId] // cache miss
         ),
         distinctUntilChanged(
           (prev, curr) => prev === curr,
