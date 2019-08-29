@@ -1,13 +1,6 @@
 import { Injectable } from '@angular/core';
 import { merge, NEVER, Observable, ReplaySubject, Subject } from 'rxjs';
-import {
-  first,
-  map,
-  merge as operatorMerge,
-  switchMap,
-  tap,
-  withLatestFrom
-} from 'rxjs/operators';
+import { first, map, switchMap, tap, withLatestFrom } from 'rxjs/operators';
 import { LanguageRemoteService } from './language-remote.service';
 import { PageService } from './page.service';
 
@@ -31,10 +24,12 @@ export class LanguageService {
         switchMap(page => languageRemoteService.fetchAvailableLanguages(page))
       );
 
-    this.firstLanguage$ = this.availableLanguages$.pipe(
-      map(availableLanguages => availableLanguages[0]),
-      first(),
-      operatorMerge(NEVER) // very important
+    this.firstLanguage$ = merge(
+      NEVER, // very important
+      this.availableLanguages$.pipe(
+        map(availableLanguages => availableLanguages[0]),
+        first()
+      )
     );
 
     this.pageChangeLanguage$ = this.availableLanguages$.pipe(

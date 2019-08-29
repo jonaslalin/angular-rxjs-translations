@@ -66,18 +66,27 @@ export class TranslationsService {
         (
           translationsCache: TranslationsCache,
           partialTranslationsCache: TranslationsCache
-        ) => ({ ...translationsCache, ...partialTranslationsCache })
+        ) => ({ ...translationsCache, ...partialTranslationsCache }),
+        {}
       ),
       shareReplay(1)
     );
 
     combineLatest(this.translationsId$, this.translationsCache$)
       .pipe(
+        filter(
+          // cache miss
+          ([translationsId, translationsCache]) =>
+            !!translationsCache[translationsId]
+        ),
+        distinctUntilChanged(
+          (prev, curr) => prev === curr,
+          ([translationsId]) => translationsId
+        ),
         map(
           ([translationsId, translationsCache]) =>
             translationsCache[translationsId]
         ),
-        filter(translations => !!translations), // cache miss
         tap(translations =>
           console.log('translations:', JSON.stringify(translations, null, 2))
         )
